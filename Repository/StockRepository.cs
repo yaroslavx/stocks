@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using stocks.Data;
+using stocks.Dtos.Stock;
 using stocks.Interfaces;
 using stocks.Models;
 
@@ -14,8 +15,55 @@ public class StockRepository : IStockRepository
         _context = context;
     }
     
-    public Task<List<Stock>> GetAllAsync()
+    public async Task<List<Stock>> GetAllAsync()
     {
-        return _context.Stocks.ToListAsync();
+        return await _context.Stocks.ToListAsync();
+    }
+    
+    public async Task<Stock?> GetByIdAsync(Guid id) 
+    {
+        return await _context.Stocks.FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    public async Task<Stock> CreateAsync(Stock stock)
+    {
+        await _context.Stocks.AddAsync(stock);
+        await _context.SaveChangesAsync();
+        return stock;
+    }
+
+    public async Task<Stock?> UpdateAsync(Guid id, UpdateStockRequestDto stock)
+    {
+        var stockToUpdate = await _context.Stocks.FirstOrDefaultAsync(x => x.Id == id);
+
+        if (stockToUpdate == null)
+        {
+            return null;
+        }
+        
+        stockToUpdate.Symbol = stock.Symbol;
+        stockToUpdate.CompanyName = stock.CompanyName;
+        stockToUpdate.Purchase = stock.Purchase;
+        stockToUpdate.LastDiv = stock.LastDiv;
+        stockToUpdate.Industry = stock.Industry;
+        stockToUpdate.MarketCap = stock.MarketCap;
+        
+        await _context.SaveChangesAsync();
+        
+        return stockToUpdate;
+    }
+
+    public async Task<Stock?> DeleteAsync(Guid id)
+    {
+        var stock = await _context.Stocks.FirstOrDefaultAsync(x => x.Id == id);
+
+        if (stock == null)
+        {
+            return null;
+        }
+        
+        _context.Stocks.Remove(stock);
+        await _context.SaveChangesAsync();  
+        return stock;
     }
 }
