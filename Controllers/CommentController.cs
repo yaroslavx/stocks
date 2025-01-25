@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using stocks.Data;
+using stocks.Dtos.Comment;
 using stocks.Interfaces;
 using stocks.Mappers;
 
@@ -9,13 +10,13 @@ namespace stocks.Controllers;
 [ApiController]
 public class CommentController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
     private readonly ICommentRepository _commentRepository;
+    private readonly IStockRepository _stockRepository;
 
-    public CommentController(ApplicationDbContext context, ICommentRepository commentRepository)
+    public CommentController(ICommentRepository commentRepository, IStockRepository stockRepository)
     {
-        _context = context;
         _commentRepository = commentRepository;
+        _stockRepository = stockRepository;
     }
 
     [HttpGet]
@@ -39,5 +40,20 @@ public class CommentController : ControllerBase
         }
         
         return Ok(stock.ToCommentDto());
+    }
+
+    [HttpPost("{stockId}")]
+    public async Task<IActionResult> Create([FromRoute] Guid stockId, [FromBody] CreateCommentRequestDto createCommentDto)
+    {
+        if (!await _stockRepository.StockExists(stockId))
+        {
+            return BadRequest("Stock does not exist");
+        }
+
+        var commentModel = createCommentDto.ToCommentFromCreateDto(stockId);
+
+        await _commentRepository.CreateAsync(commentModel);
+        
+        return CreatedAtAction(nameof(GetById), new { id = commentModel.Id }, commentModel.ToCommentDto());
     }
 }
