@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using stocks.Data;
 using stocks.Interfaces;
@@ -17,5 +18,12 @@ public class CommentRepository : ICommentRepository
     public async Task<List<Comment>> GetAllAsync()
     {
         return await _context.Comments.ToListAsync();
+    }
+
+    public Task<Comment?> GetByIdAsync([FromRoute]Guid id)
+    {
+        var comment = _context.Comments.FirstOrDefaultAsync(c => c.Id == id);
+ 
+        return comment;
     }
 }
