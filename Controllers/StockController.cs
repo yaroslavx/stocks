@@ -35,7 +35,7 @@ public class StockController : ControllerBase
         
         if (stock == null)
         {
-            return NotFound();
+            return NotFound("Stock not found");
         }
         
         return Ok(stock.ToStockDto());
@@ -55,11 +55,11 @@ public class StockController : ControllerBase
     [Route("{id}")]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateStockRequestDto updateStockDto)
     {
-        var stockModel = await _stockRepository.UpdateAsync(id, updateStockDto);
+        var stockModel = await _stockRepository.UpdateAsync(id, updateStockDto.ToStockFromUpdateDto());
 
         if (stockModel == null)
         {
-            return NotFound();
+            return NotFound("Stock not found");
         }
         
         return Ok(stockModel.ToStockDto());
@@ -73,7 +73,7 @@ public class StockController : ControllerBase
         
         if (stockModel == null)
         {
-            return NotFound();
+            return NotFound("Stock not found");
         }
         
         return NoContent();

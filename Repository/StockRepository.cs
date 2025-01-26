@@ -32,7 +32,7 @@ public class StockRepository : IStockRepository
         return stock;
     }
 
-    public async Task<Stock?> UpdateAsync(Guid id, UpdateStockRequestDto stock)
+    public async Task<Stock?> UpdateAsync(Guid id, Stock stock)
     {
         var stockToUpdate = await _context.Stocks.FirstOrDefaultAsync(s => s.Id == id);
 

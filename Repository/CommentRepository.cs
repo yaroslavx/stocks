@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using stocks.Data;
+using stocks.Dtos.Comment;
 using stocks.Interfaces;
 using stocks.Models;
 
@@ -20,7 +21,7 @@ public class CommentRepository : ICommentRepository
         return await _context.Comments.ToListAsync();
     }
 
-    public Task<Comment?> GetByIdAsync([FromRoute]Guid id)
+    public Task<Comment?> GetByIdAsync(Guid id)
     {
         var comment = _context.Comments.FirstOrDefaultAsync(c => c.Id == id);
  
@@ -32,5 +33,22 @@ public class CommentRepository : ICommentRepository
         await _context.Comments.AddAsync(comment);
         await _context.SaveChangesAsync();
         return comment;
+    }
+
+    public async Task<Comment?> UpdateAsync(Guid id, Comment comment)
+    {
+        var commentToUpdate = await _context.Comments.FirstOrDefaultAsync(c => c.Id == id);
+
+        if (commentToUpdate == null)
+        {
+            return null;
+        }
+        
+        commentToUpdate.Title = comment.Title;
+        commentToUpdate.Content = comment.Content;
+        
+        await _context.SaveChangesAsync();
+        
+        return commentToUpdate;
     }
 }
