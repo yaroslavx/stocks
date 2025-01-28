@@ -47,8 +47,10 @@ public class StockRepository : IStockRepository
                 stocks = query.IsDecsending ? stocks.OrderByDescending(s => s.CompanyName) : stocks.OrderBy(s => s.CompanyName);
             }
         }
+
+        var skipNumber = (query.Current - 1) * query.PageSize;
         
-        return await stocks.ToListAsync();
+        return await stocks.Skip(skipNumber).Take(query.PageSize).ToListAsync();
     }
     
     public async Task<Stock?> GetByIdAsync(Guid id) 
