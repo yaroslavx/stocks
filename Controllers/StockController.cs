@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using stocks.Data;
 using stocks.Dtos.Stock;
+using stocks.Helpers;
 using stocks.Interfaces;
 using stocks.Mappers;
 
@@ -19,14 +20,14 @@ public class StockController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] QueryObject query)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
         
-        var stocks = await _stockRepository.GetAllAsync();
+        var stocks = await _stockRepository.GetAllAsync(query);
 
         var stockDtos = stocks.Select(s => s.ToStockDto());
         
