@@ -7,7 +7,7 @@ using stocks.Models;
 
 namespace stocks.Controllers;
 
-[Route("api/controller")]
+[Route("api/portfolio")]
 [ApiController]
 public class PortfolioController : ControllerBase
 {
@@ -28,8 +28,63 @@ public class PortfolioController : ControllerBase
     {
         var username = User.GetUsername();
         var appUser = await _userManager.FindByNameAsync(username);
-        var userPortfolio = await _portfolioRepository.GetUserPortfolio(appUser.Id);
+        var userPortfolio = await _portfolioRepository.GetPortfolioAsync(appUser.Id);
         
         return Ok(userPortfolio);
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> AddPortfolio(string symbol)
+    {
+        var username = User.GetUsername();
+        var appUser = await _userManager.FindByNameAsync(username);
+        var stock = await _stockRepository.GetBySymbolAsync(symbol);
+
+        if (stock == null)
+        {
+            return BadRequest("Stock not found");
+        }
+
+        var userPortfolio = await _portfolioRepository.GetPortfolioAsync(appUser.Id);
+
+        if (userPortfolio.Any(e => symbol.ToLower() == symbol.ToLower()))
+        {
+            return BadRequest("Stock already exists");  
+        }
+
+        var portfolioModel = new Portfolio
+        {
+            StockId = stock.Id,
+            AppUserId = appUser.Id,
+        };
+        
+        var portfolio =_portfolioRepository.CreatePortfolioAsync(portfolioModel);
+
+        if (portfolio == null)
+        {
+            return StatusCode(500, "Portfolio could not be created");
+        }
+        
+        return Created();
+    }
+
+    [HttpDelete]
+    [Authorize]
+    public async Task<IActionResult> DeletePortfolio(string symbol)
+    {
+        var username = User.GetUsername();
+        var appUser = await _userManager.FindByNameAsync(username);
+        var userPortfolio = await _portfolioRepository.GetPortfolioAsync(appUser.Id);
+        var stock =  userPortfolio.FirstOrDefault(x => x.Symbol.ToLower() == symbol.ToLower());
+        
+        var deletedStock = await _portfolioRepository.DeletePortfolioAsync(stock.Id);
+
+        if (deletedStock == null)
+        {
+            return StatusCode(500, "Portfolio could not be deleted");
+        }
+        
+        return NoContent();
     }
 }

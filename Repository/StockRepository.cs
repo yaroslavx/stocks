@@ -104,4 +104,9 @@ public class StockRepository : IStockRepository
     {
         return await _context.Stocks.AnyAsync(s => s.Id == id);
     }
+
+    public async Task<Stock?> GetBySymbolAsync(string symbol)
+    {
+        return await _context.Stocks.Include(s => s.Comments).FirstOrDefaultAsync(s => s.Symbol == symbol);
+    }
 }
