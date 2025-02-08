@@ -10,5 +10,7 @@ public class CommentDto
     
     public DateTime Created { get; set; } = DateTime.Now;
     
+    public string CreatedBy { get; set; } = string.Empty;
+    
     public Guid? StockId { get; set; }
 }

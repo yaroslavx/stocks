@@ -1,8 +1,11 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using stocks.Data;
 using stocks.Dtos.Comment;
+using stocks.Extensions;
 using stocks.Interfaces;
 using stocks.Mappers;
+using stocks.Models;
 
 namespace stocks.Controllers;
 
@@ -12,11 +15,13 @@ public class CommentController : ControllerBase
 {
     private readonly ICommentRepository _commentRepository;
     private readonly IStockRepository _stockRepository;
+    private readonly UserManager<AppUser> _userManager;
 
-    public CommentController(ICommentRepository commentRepository, IStockRepository stockRepository)
+    public CommentController(ICommentRepository commentRepository, IStockRepository stockRepository, UserManager<AppUser> userManager)
     {
         _commentRepository = commentRepository;
         _stockRepository = stockRepository;
+        _userManager = userManager;
     }
 
     [HttpGet]
@@ -65,8 +70,12 @@ public class CommentController : ControllerBase
             return BadRequest("Stock does not exist");
         }
 
-        var commentModel = createCommentDto.ToCommentFromCreateDto(stockId);
+        var username = User.GetUsername();
+        var user = await _userManager.FindByNameAsync(username);
 
+        var commentModel = createCommentDto.ToCommentFromCreateDto(stockId);
+        commentModel.AppUserId = user.Id;
+        
         await _commentRepository.CreateAsync(commentModel);
         
         return CreatedAtAction(nameof(GetById), new { id = commentModel.Id }, commentModel.ToCommentDto());
